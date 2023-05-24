@@ -5,7 +5,7 @@ import contextlib
 import argparse
 import sys
 
-BUILD_PATH = "./build/"
+BUILD_PATH = "./bdir/"
 CONFIGURE_COMMAND = "cmake {} ..;"
 BUILD_COMMAND = "cmake --build . --clean-first;"
 
