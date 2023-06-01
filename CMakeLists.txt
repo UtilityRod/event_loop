@@ -7,5 +7,5 @@ add_executable(eloop_test)
 add_subdirectory(deps)
 add_subdirectory(src)
 
-target_link_libraries(eloop_lib dstruct_static)
+target_link_libraries(eloop_lib tpool)
 target_link_libraries(eloop_test eloop_lib)

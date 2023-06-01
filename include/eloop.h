@@ -7,8 +7,8 @@ typedef int event_func(void * data);
 
 typedef struct {
     void * data;
-    event_func * func;
-    
+    event_func * efunc;
+    event_func * dfunc;
 } event_t;
 
 eloop_t * eloop_create(void);

@@ -1,10 +1,15 @@
 #include <eloop.h>
-#include <queue.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <thread_pool.h>
+
+#define NUMBER_OF_THREADS 10
 
 struct eloop {
-    queue_t * queue;
+    thread_pool_t * pool;
 };
+
+static void * pool_func(void * data);
 
 eloop_t * eloop_create(void)
 {
@@ -15,9 +20,9 @@ eloop_t * eloop_create(void)
         goto init_return;
     }
 
-    new_eloop->queue = queue_create(NULL, NULL);
+    new_eloop->pool = pool_create(NUMBER_OF_THREADS, pool_func);
 
-    if (!new_eloop->queue)
+    if (!(new_eloop->pool))
     {
         goto cleanup;
     }
@@ -25,6 +30,8 @@ eloop_t * eloop_create(void)
     goto init_return;
 
 cleanup:
+    pool_destroy(new_eloop->pool);
+    new_eloop->pool = NULL;
     free(new_eloop);
     new_eloop = NULL;
 init_return:
@@ -33,15 +40,11 @@ init_return:
 
 int eloop_destroy(eloop_t * eloop)
 {
-    if (!eloop)
+    if (eloop && eloop->pool)
     {
-        return -1;
-    }
-
-    if (eloop->queue)
-    {
-        queue_destroy(eloop->queue);
-        eloop->queue = NULL;
+        pool_kill_all(eloop->pool);
+        pool_destroy(eloop->pool);
+        eloop->pool = NULL;
     }
     
     free(eloop);
@@ -50,17 +53,36 @@ int eloop_destroy(eloop_t * eloop)
 
 int eloop_add(eloop_t * eloop, event_t * event)
 {
-    if (!eloop || !eloop->queue)
+    if (!eloop || !(eloop->pool))
     {
         return -1;
     }
 
-    if (!event || !event->func || !event->data)
+    if (!event || !event->efunc || !event->data)
     {
         return -2;
     }
 
-    queue_enqueue(eloop->queue, event);
+    pool_add_work(eloop->pool, event);
+
     return 0;
+}
+
+static void * pool_func(void * data)
+{
+    if (!data)
+    {
+        return NULL;
+    }
+
+    event_t * event = (event_t *)data;
+    event->efunc(event->data);
+
+    if (event->dfunc)
+    {
+        event->dfunc(event);
+    }
+
+    return NULL;
 }
 // END OF SOURCE
