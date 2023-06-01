@@ -3,23 +3,31 @@
 #include <eloop.h>
 
 static int efunc(void * data);
-static int dfunc(void * data);
+static int heap_dfunc(void * data);
+static int stack_dfunc(void * data);
 
 int main(void)
 {
     eloop_t * eloop = eloop_create();
-    int * intptr = calloc(1, sizeof(*intptr));
-    *intptr = 5;
+    int * intptr1 = calloc(1, sizeof(*intptr1));
+    *intptr1 = 5;
 
-    event_t * event = calloc(1, sizeof(*event));
+    event_t * heap_event = calloc(1, sizeof(*heap_event));
+    heap_event->data = intptr1;
+    heap_event->efunc = efunc;
+    heap_event->dfunc = heap_dfunc;
+    eloop_add(eloop, heap_event);
 
-    if (event)
-    {
-        event->data = intptr;
-        event->efunc = efunc;
-        event->dfunc = dfunc;
-        eloop_add(eloop, event);
-    }
+    int * intptr2 = calloc(1, sizeof(*intptr2));
+    *intptr2 = 10;
+
+    event_t stack_event = {
+        .data = intptr2,
+        .efunc = efunc,
+        .dfunc = stack_dfunc,
+    };
+
+    eloop_add(eloop, &stack_event);
 
     eloop_destroy(eloop);
 }
@@ -35,7 +43,7 @@ static int efunc(void * data)
     printf("Integer value: %d\n", *intptr);
 }
 
-static int dfunc(void * data)
+static int heap_dfunc(void * data)
 {
     if (!data)
     {
@@ -46,8 +54,24 @@ static int dfunc(void * data)
     free(event->data);
 
     event->dfunc = NULL;
-    event->dfunc = NULL;
+    event->efunc = NULL;
     event->data = NULL;
     free(event);
+    return 0;
+}
+
+static int stack_dfunc(void * data)
+{
+    if (!data)
+    {
+        return -1;
+    }
+
+    event_t * event = (event_t *)data;
+    free(event->data);
+
+    event->dfunc = NULL;
+    event->efunc = NULL;
+    event->data = NULL;
     return 0;
 }
