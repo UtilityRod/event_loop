@@ -3,12 +3,12 @@
 
 typedef struct eloop eloop_t;
 
-typedef int event_func(void * data);
+typedef int event_func_f(void * data);
 
 typedef struct {
     void * data;
-    event_func * efunc;
-    event_func * dfunc;
+    event_func_f * efunc;
+    event_func_f * dfunc;
 } event_t;
 
 eloop_t * eloop_create(void);
