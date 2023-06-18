@@ -2,14 +2,13 @@
 #define _ELOOP_H_
 
 typedef struct eloop eloop_t;
+typedef struct event event_t;
+typedef int event_func_f(event_t * evet);
 
-typedef int event_func_f(void * data);
-
-typedef struct {
+struct event {
     void * data;
     event_func_f * efunc;
-    event_func_f * dfunc;
-} event_t;
+};
 
 eloop_t * eloop_create(void);
 int eloop_destroy(eloop_t * eloop);

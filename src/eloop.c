@@ -65,12 +65,7 @@ int eloop_destroy(eloop_t * eloop)
         while(queue_get_size(eloop->queue))
         {
             event = queue_dequeue(eloop->queue);
-
-            if (event->dfunc)
-            {
-                event->dfunc(event);
-            }
-
+            event->efunc(event);
             event = NULL;
         }
 
@@ -130,12 +125,7 @@ static void * work_function(void * data)
 
         if (event)
         {
-            event->efunc(event->data);
-
-            if (event->dfunc)
-            {
-                event->dfunc(event);
-            }
+            event->efunc(event);
         }  
     }
 
